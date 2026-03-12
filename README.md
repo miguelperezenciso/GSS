@@ -1,9 +1,69 @@
 # A generalized single step method that includes any number of hierarchical genomic matrices
 
-Miguel Pérez-Enciso
+**Miguel Pérez-Enciso**
+
+mperezenciso@gmail.com
 
 The Single Step algorithm allows combining information from genotyped and un-genotyped individuals, provided they are connected by a pedigree. Current single step theory is limited to a single genotyping array. 
 
 We present a generalized single step (GSS) method that can accommodate any number of hierarchical molecular datasets (e.g., sequence, high and low density arrays) and pedigree, avoiding imputation. We proof that a similar efficient inversion algorithm exists. The method is recursive, starting with the highest marker density scenario. We illustrate the method with simulation and show that GSS can increase predictive accuracy compared to standard single step. R code is provided so that custom scenarios can be easily compared, either with simulated or real data.
 
 The method developed generalizes extant single step theory to any number of hierarchical molecular relationship matrices, broadening the scenarios where single step can be applied. A topic of particular interest can be ecology field data or human populations where pedigree is not available, but where samples sequenced and genotyped at different densities can exist. GSS can also be a useful tool to optimize allocation of genotyping and / or sequencing resources.
+
+## Theory
+In the following, we assume the usual linear mixed model:
+
+y = Xb + Wu + e,
+
+where y contains the phenotypes, b is the fixed effects vector, random genetic values are in u, residuals in e, and X and W are incidence matrices. SS theory considers a subset in u, u1 comprising individuals without molecular data and subset u2 which have been genotyped. Both u1 and u2 are related through a common pedigree (P) that results in numerator relationship matrix A. When marker information on m SNPs is available, a genomic relationship matrix (GRM) G can be computed as
+
+$$\mathbf{G} = \frac{(\mathbf{M} - 2\boldsymbol{p}) (\mathbf{M} - 2\boldsymbol{p})'}{2 \boldsymbol{p}'(1 - \boldsymbol{p})}$$
+
+where M is a n individual by m marker matrix containing genotypes (coded as 0,1,2) and p, a m-dimension vector with corresponding allele frequencies. Legarra et al. (2009) and Christensen and Lund (2010) showed that the variance of breeding values can be approximated by
+
+$$\mathbf{H} = Var \left( \begin{matrix} \boldsymbol{u}_1 \\ \boldsymbol{u}_2 \end{matrix} \middle| \mathbf{P}, \mathbf{M}, \dots \right) = 
+\begin{pmatrix} 
+\mathbf{A}_{11} - \mathbf{A}_{12}\mathbf{A}_{22}^{-1}\mathbf{A}_{21} + \mathbf{A}_{12}\mathbf{A}_{22}^{-1}\mathbf{G}_{22}\mathbf{A}_{22}^{-1}\mathbf{A}_{21} & \mathbf{A}_{12}\mathbf{A}_{22}^{-1}\mathbf{G}_{22} \\ 
+\mathbf{A}_{21}\mathbf{A}_{22}^{-1}\mathbf{G}_{22} & \mathbf{G}_{22} 
+\end{pmatrix} \sigma_u^2$$
+
+We generalize SS current theory to an arbitrary number of hierarchized molecular information datasets. Initially, without loss of generalization, let us consider three subsets: no molecular information (only P available), SNP array (M) and sequence (MS) information. We consider that sequence is available only for a subset u3 of those individuals that are also genotyped with the array.  We further assume that all markers in M are also present in MS, and that individuals are connected through a pedigree P. Therefore, the goal is to obtain
+
+$$Var \left( \begin{matrix} \boldsymbol{u}_1 \\ \boldsymbol{u}_2 \\ \boldsymbol{u}_3 \end{matrix} \middle| \mathbf{P}, \mathbf{M}, \mathbf{M}_S, \dots \right) = 
+\begin{pmatrix} 
+\mathbf{H}_{11} & \mathbf{H}_{12} & \mathbf{H}_{13} \\ 
+\mathbf{H}_{21} & \mathbf{H}_{22} & \mathbf{H}_{23} \\ 
+\mathbf{H}_{31} & \mathbf{H}_{32} & \mathbf{H}_{33} 
+\end{pmatrix} \sigma_u^2 = \mathbf{H} \sigma_u^2,$$
+
+First, we note that
+
+$$\mathbf{H}_{33} = Var(\boldsymbol{u}_3 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \sim Var(\boldsymbol{u}_3 | \mathbf{M}_S) = \mathbf{S} \sigma_u^2$$
+
+where S is the genomic relationship matrix computed applying eq. (1) to sequence data. Equation above means that sequence information makes it ignorable the contribution from the array (and that of the pedigree), i.e., the same assumption as in standard SS. Next, following the same reasoning as in single step theory (eq. 2), except that G is used instead of A, and S instead of G:
+
+$$\mathbf{H}_{22} = Var(\boldsymbol{u}_2 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \sim Var(\boldsymbol{u}_2 | \mathbf{M}, \mathbf{M}_S) = (\mathbf{G}_{22} - \mathbf{G}_{23} \mathbf{G}_{33}^{-1} \mathbf{G}_{32} + \mathbf{G}_{23} \mathbf{G}_{33}^{-1} \mathbf{S} \mathbf{G}_{33}^{-1} \mathbf{G}_{32}) \sigma_u^2,$$
+
+and by the same token
+
+$$\mathbf{H}_{23} = Cov(\boldsymbol{u}_2, \boldsymbol{u}_3 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \sim Cov(\boldsymbol{u}_2, \boldsymbol{u}_3 | \mathbf{M}, \mathbf{M}_S) = \mathbf{G}_{23} \mathbf{G}_{33}^{-1} \mathbf{S} \sigma_u^2.$$
+
+Next, note
+
+$$f(\boldsymbol{u}_1 | \boldsymbol{u}_2, \boldsymbol{u}_3) = 
+N \left[ 
+\begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \boldsymbol{u}_2 \\ \boldsymbol{u}_3 \end{pmatrix}, 
+\left\{ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right\} \sigma_u^2 
+\right]$$
+
+
+
+
+
+
+
+
