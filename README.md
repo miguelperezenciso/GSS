@@ -107,7 +107,7 @@ $$
 
 which requires the inverse of matrices with maximum dimension the number of individuals with molecular data. 
 
-Importantly, the theory above lends itself to generalize to any number of marker datasets, as long as they are hierarchical. Suppose we have a list of $b$ marker datasets (blocks) with covariance matrices $\mathbf{G}_{[1]}$, $\mathbf{G}_{[2]}$,..., $\mathbf{G}_{[b]}$, such that block 1 corresponds to ungenotyped individuals and block $b$ to those with highest genotyped density; in the case above $\mathbf{G}_{[1]} \equiv \mathbf{A}$, and $\mathbf{G}_{[3]} \equiv \mathbf{S}$. Then for any $i$-th block:
+Importantly, the theory above lends itself to generalize to any number of marker datasets, as long as they are hierarchical. Suppose we have a list of $b$ marker datasets (blocks) with covariance matrices G[1], G[2]$,..., G[b], such that block 1 corresponds to ungenotyped individuals and block $b$ to those with highest genotyped density; in the case above G[1] = A and G[3]=S. Then for any $i$-th block:
 
 $$
 \begin{aligned}
