@@ -1,4 +1,4 @@
-# A generalized single step method that includes any number of hierarchical genomic matrices
+# A generalized single step for any number of hierarchical genomic matrices
 
 **Miguel Pérez-Enciso**
 
@@ -107,13 +107,8 @@ $$
 
 which requires the inverse of matrices with maximum dimension the number of individuals with molecular data. 
 
-Importantly, the theory above lends itself to generalize to any number of 
-marker datasets, as long as they are hierarchical. Suppose we have a list 
-of $b$ marker datasets (blocks) with covariance matrices 
-$\mathbf{G}_{[1]}, \mathbf{G}_{[2]}, \dots, \mathbf{G}_{[b]}$, such that 
-block 1 corresponds to ungenotyped individuals and block $b$ to those 
-with highest genotyped density; in the case above $\mathbf{G}_{[1]} \equiv \mathbf{A}$, 
-and $\mathbf{G}_{[3]} \equiv \mathbf{S}$. Then for any $i$-th block:
+Importantly, the theory above lends itself to generalize to any number of marker datasets, as long as they are hierarchical. Suppose we have a list of $b$ marker datasets (blocks) with covariance matrices 
+$\mathbf{G}_{[1]}, \mathbf{G}_{[2]}, \dots, \mathbf{G}_{[b]}$, such that block 1 corresponds to ungenotyped individuals and block $b$ to those with highest genotyped density; in the case above $\mathbf{G}_{[1]} \equiv \mathbf{A}$, and $\mathbf{G}_{[3]} \equiv \mathbf{S}$. Then for any $i$-th block:
 
 
 $$
@@ -131,14 +126,8 @@ $$
 \end{aligned}
 $$
 
-The set of equations (6) and (7) is computed recursively, starting with 
-$\mathbf{H}_{bb} = \mathbf{G}_{[b]bb} \sigma_u^2$, the individuals with 
-highest marker density, and can be applied to any number of hierarchical 
-marker sets. However, note that each step requires the inverse of submatrix 
-$\mathbf{G}_{j>i, j>i}$ (eq. 6), with order of magnitude the sum of individuals 
-in each of the blocks $i+1$ to $b$. Therefore, having many blocks of large 
-sizes can be computationally demanding. Further, the inverse of $\mathbf{H}$ 
-can also be obtained from:
+The set of equations (6) and (7) is computed recursively, starting with $\mathbf{H}_{bb} = \mathbf{G}_{[b]bb} \sigma_u^2$, the individuals with highest marker density, and can be applied to any number of hierarchical marker sets. However, note that each step requires the inverse of submatrix 
+$\mathbf{G}_{j>i, j>i}$ (eq. 6), with order of magnitude the sum of individuals in each of the blocks $i+1$ to $b$. Therefore, having many blocks of large sizes can be computationally demanding. Further, the inverse of $\mathbf{H}$ can also be obtained from:
 
 $$
 \begin{aligned}
