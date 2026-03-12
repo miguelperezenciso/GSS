@@ -69,27 +69,17 @@ From above, integrating out (u2, u3) in (3) using (4), it follows that
 
 $$
 \begin{aligned}
-\mathbf{H}_{11} &= Var(u_1 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\
+\mathbf{H}_{11} &= Var(u_1 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\\\
 &= \left[ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
-\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] +
-\end{aligned}
-$$
-
-$$
-\begin{aligned}
-\mathbf{H}_{11} &= Var(u_1 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\
-&= \left[ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
-\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2 \\
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\\\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\\\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2 \\\\
 &+ \left[ \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
-\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{pmatrix} 
-\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\\\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\\\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\\\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\\\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2
 \end{aligned}
 $$
-
 
 
 
