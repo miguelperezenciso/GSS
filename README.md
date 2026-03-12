@@ -81,9 +81,39 @@ $$
 \end{aligned}
 $$
 
+and 
 
+$$
+\begin{aligned}
+\mathbf{H}_{1, j>1} &= \begin{pmatrix} \mathbf{H}_{12} & \mathbf{H}_{13} \end{pmatrix} \\\\
+&= Cov(\mathbf{u}_1, [\mathbf{u}_2, \mathbf{u}_3]' | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\\\
+&= \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\\\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\\\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{pmatrix} \sigma_u^2
+\end{aligned}
+$$
 
+Because the generalized H matrix has the same structure as in the standard SS theory, its inverse is also given by
 
+$$
+\begin{aligned}
+\mathbf{H}^{-1} &= \mathbf{A}^{-1} + 
+\begin{pmatrix} 
+0 & \mathbf{0} \\\\ 
+\mathbf{0} & \begin{bmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\\\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{bmatrix}^{-1} - \begin{bmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\\\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{bmatrix}^{-1} 
+\end{pmatrix}
+\end{aligned}
+$$
+
+which requires the inverse of matrices with maximum dimension the number of individuals with molecular data. 
+
+Importantly, the theory above lends itself to generalize to any number of 
+marker datasets, as long as they are hierarchical. Suppose we have a list 
+of $b$ marker datasets (blocks) with covariance matrices 
+$\mathbf{G}_{[1]}, \mathbf{G}_{[2]}, \dots, \mathbf{G}_{[b]}$, such that 
+block 1 corresponds to ungenotyped individuals and block $b$ to those 
+with highest genotyped density; in the case above $\mathbf{G}_{[1]} \equiv \mathbf{A}$, 
+and $\mathbf{G}_{[3]} \equiv \mathbf{S}$. Then for any $i$-th block:
 
 
 
