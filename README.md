@@ -50,15 +50,45 @@ $$\mathbf{H}_{23} = Cov(\boldsymbol{u}_2, \boldsymbol{u}_3 | \mathbf{P}, \mathbf
 
 Next, note
 
-$$f(\boldsymbol{u}_1 | \boldsymbol{u}_2, \boldsymbol{u}_3) = 
-N \left[ 
-\begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+$$
+\begin{aligned}
+f(\mathbf{u}_1 | \mathbf{u}_2, \mathbf{u}_3) &= N \left[ \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
 \begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \boldsymbol{u}_2 \\ \boldsymbol{u}_3 \end{pmatrix}, 
-\left\{ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{u}_2 \\ \mathbf{u}_3 \end{pmatrix}, \right. \\
+& \quad \left. \{ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
 \begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
-\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right\} \sigma_u^2 
-\right]$$
+\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \} \sigma_u^2 \right]
+\end{aligned}
+$$
+
+Now let us take the submatrix of H that contains the joint variance of u2 and u3, i.e., those individuals with molecular data, either sequence or SNP array:
+
+$$Var \left( \begin{matrix} \mathbf{u}_2 \\ \mathbf{u}_3 \end{matrix} \middle| \mathbf{P}, \mathbf{M}, \mathbf{M}_S, \dots \right) = \begin{pmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{pmatrix} \sigma_u^2$$
+
+From above, integrating out (u2, u3) in (3) using (4), it follows that 
+
+$$
+\begin{aligned}
+\mathbf{H}_{11} &= Var(u_1 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\
+&= \left[ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] +
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\mathbf{H}_{11} &= Var(u_1 | \mathbf{P}, \mathbf{M}, \mathbf{M}_S) \\
+&= \left[ \mathbf{A}_{11} - \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2 \\
+&+ \left[ \begin{pmatrix} \mathbf{A}_{12} & \mathbf{A}_{13} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{H}_{22} & \mathbf{H}_{23} \\ \mathbf{H}_{32} & \mathbf{H}_{33} \end{pmatrix} 
+\begin{pmatrix} \mathbf{A}_{22} & \mathbf{A}_{23} \\ \mathbf{A}_{32} & \mathbf{A}_{33} \end{pmatrix}^{-1} 
+\begin{pmatrix} \mathbf{A}_{21} \\ \mathbf{A}_{31} \end{pmatrix} \right] \sigma_u^2
+\end{aligned}
+$$
 
 
 
