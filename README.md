@@ -116,4 +116,39 @@ with highest genotyped density; in the case above $\mathbf{G}_{[1]} \equiv \math
 and $\mathbf{G}_{[3]} \equiv \mathbf{S}$. Then for any $i$-th block:
 
 
+$$
+\begin{aligned}
+\mathbf{H}_{ii} &= \left[ \mathbf{G}_{[i]ii} - \mathbf{G}_{[i]i,j>i} \mathbf{G}_{[i]j>i,j>i}^{-1} \mathbf{G}_{[i]j>i,i} \right. \\\\
+&\quad + \left. \mathbf{G}_{[i]i,j>i} \mathbf{G}_{[i]j>i,j>i}^{-1} \mathbf{H}_{j>i,j>i} \mathbf{G}_{[i]j>i,j>i}^{-1} \mathbf{G}_{[i]j>i,i} \right] \sigma_u^2
+\end{aligned}
+$$
+
+and
+
+$$
+\begin{aligned}
+\mathbf{H}_{i, j>i} &= \left[ \mathbf{G}_{[i]i, j>i} \mathbf{G}_{[i]j>i, j>i}^{-1} \mathbf{H}_{j>i, j>i} \right] \sigma_u^2
+\end{aligned}
+$$
+
+The set of equations (6) and (7) is computed recursively, starting with 
+$\mathbf{H}_{bb} = \mathbf{G}_{[b]bb} \sigma_u^2$, the individuals with 
+highest marker density, and can be applied to any number of hierarchical 
+marker sets. However, note that each step requires the inverse of submatrix 
+$\mathbf{G}_{j>i, j>i}$ (eq. 6), with order of magnitude the sum of individuals 
+in each of the blocks $i+1$ to $b$. Therefore, having many blocks of large 
+sizes can be computationally demanding. Further, the inverse of $\mathbf{H}$ 
+can also be obtained from:
+
+$$
+\begin{aligned}
+\mathbf{H}^{-1} &= \mathbf{G}_{[1]}^{-1} + 
+\begin{pmatrix} 
+0 & \mathbf{0} \\\\ 
+\mathbf{0} & \left( \mathbf{H}_{i>1, i>1}^{-1} - \mathbf{G}_{[1]i>1, j>1}^{-1} \right)
+\end{pmatrix}^{-1}
+\end{aligned}
+$$
+
+where subscript 'j>i' refers to matrix block with indices i+1 to b. As in classical SS, GSS is optimal computationally when the first block, made-up of ungenotyped individuals, (G1) is the largest and equal to A, since its inverse can be computed in linear time and is sparse.
 
