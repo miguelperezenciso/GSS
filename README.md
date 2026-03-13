@@ -11,9 +11,9 @@ We present a generalized single step (GSS) method that can accommodate any numbe
 The method developed generalizes extant single step theory to any number of hierarchical molecular relationship matrices, broadening the scenarios where single step can be applied. A topic of particular interest can be ecology field data or human populations where pedigree is not available, but where samples sequenced and genotyped at different densities can exist. GSS can also be a useful tool to optimize allocation of genotyping and / or sequencing resources.
 
 ## Code provided
-- aux.R contains several auxiliary functions
-- gsstep.Rmd is an interactive script that illustrates the method
-- GSS.R a larger example with some improved graphs
+- [aux.R](https://github.com/miguelperezenciso/GSS/blob/main/aux.R) contains several auxiliary functions
+- [gsstep.Rmd]((https://github.com/miguelperezenciso/GSS/blob/main/gsstep.Rmd)) is an interactive script that illustrates the method
+- [GSS.R]((https://github.com/miguelperezenciso/GSS/blob/main/GSS.R)) a larger example used in the manuscript with some improved graphs
 
 
 ## Theory
