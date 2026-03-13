@@ -1,0 +1,345 @@
+---
+title: "Generalized Single Step Genomic Selection Tutorial"
+author: "Miguel Pérez-Enciso (mperezenciso@gmail.com)"
+output: 
+  learnr::tutorial:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+runtime: shiny_prerendered
+---
+
+## **Outline**
+
+We present a generalized single step (GSS) method that can accommodate any number of hierarchical molecular datasets (e.g., sequence, high and low density arrays) and pedigree, avoiding imputation. We proof that a similar efficient inversion algorithm exists. The method is recursive, starting with the highest marker density scenario.
+
+
+```{r setup, include=FALSE}
+library(MASS)
+library(learnr)
+library(AlphaSimR)
+library(devtools)
+library(here)
+
+knitr::opts_chunk$set(echo = TRUE)
+
+# This sets a seed for the entire knitting process
+set.seed(42)
+
+# auxiliary functions
+source_url("https://raw.githubusercontent.com/miguelperezenciso/GSS/main/aux.R")
+
+# ============================================================
+# alphasimR wrapper
+# ============================================================
+# simulates nGen cycles of nGen discrete generations with 
+# random crossings 
+#  - h2: heritability
+#  - nFounder: n founders
+#  - nOffspring: per cross
+#  - nChr: no chromosomes
+#  - nQTL per chr
+#  - nSNP per chr
+# ============================================================
+#------------------------------------------------------------------------
+runAlphasim <- function(h2, nFounder, nOffspring, nChr, nQTL, nSNP, nGen) {
+#------------------------------------------------------------------------
+   #--> Founder population
+   founderPop = runMacs(nInd = nFounder,  
+                        nChr = nChr,   
+                        segSites = nSNP)
+   
+   # ULL: SP is now global variable
+   SP <<- SimParam$new(founderPop)
+   SP$addTraitA(nQtlPerChr = nQTL)   # add QTL
+   SP$setVarE(h2 = h2)               # sets error variance to achieve desired h²
+
+   #--> mating cycles
+   pops = list()
+   pops[[1]] = newPop(founderPop) 
+   for (t in 1:nGen) {
+      # Random mating 
+      pops[[t+1]] <- randCross(pops[[t]], 
+                               nCrosses = nFounder,
+                               nProgeny = nOffspring,
+                               simParam = SP)
+   }
+   # merge all generations
+   pop = Reduce(c, pops)
+
+   #--> Assign phenotypes 
+   pop = setPheno(pop, h2 = h2, simParam = SP)
+   y = pop@pheno
+
+   #--> Get all segregating SNPs + QTL
+   g = pullSegSiteGeno(pop, simParam = SP)
+   
+   #--> Get all segregating SNPs + QTL
+   q = pullQtlGeno(pop, simParam = SP) 
+   
+   #--> Get QTL genotypes
+   tbv = pop@gv
+
+   #--> get ped, add generation column
+   ped = data.frame(pop@iid, as.integer(pop@father), as.integer(pop@mother))
+   ped <- cbind( ped, c(rep(0,nFounder), sort(rep(1:nGen,nFounder*nOffspring))) )
+
+   # returns pedigree, phenotypes, sequence, qtl genotypes, true breeding value
+   return(list(ped=ped, y=y, g=g, q=q, tbv=tbv))
+}
+
+# ======================================================
+# Computes H matrix for any number of hierarchical GRMs
+# ======================================================
+#------------------------
+doHgss <- function(Glist) {
+#------------------------
+  # Input is a list of molecular relationship matrices in increasing marker density
+  # Output is the covariance H matrix
+  # WARNING: G list is in decreasing size order
+  #          G[[1]] supposed to be NRM but could be the lowest density marker GRM
+  #                 if pedigree unavailable
+  # All individuals in G[i+1] are to be in G[i] and in same order
+  # All markers in G[i] are supposed to be in G[i+1]
+  nb = length(Glist)     # n G's
+  n  = ncol(Glist[[1]])  # ninds
+  H  = matrix(0, nrow=n, ncol=n)
+  
+  n0 = ncol(Glist[[nb]])
+  # This is the span of inds for highest density genotyped
+  H[(n-n0+1):n, (n-n0+1):n] = Glist[[nb]]
+  for (i in (nb-1):1) {
+    G  = Glist[[i]]   # G of current block
+    n1 = ncol(G)      # coordinates wrt to current G
+    b1 = 1:(n1-n0)    # individuals with current array ungenotyped with former denser array
+    b0 = (n1-n0+1):n1 # previous individuals genotyped with denser array
+    h1 = b1 + (n-n1)  # coordinates in global H: 1...nind
+    h0 = b0 + (n-n1)
+    Gi = chol2inv(chol(G[b0,b0]))
+    H[h1,h1] = G[b1,b1] - 
+               t(G[b0,b1]) %*% Gi %*% G[b0,b1] + 
+               t(G[b0,b1]) %*% Gi %*% H[h0,h0] %*% Gi %*% G[b0,b1]
+    H[h1,h0] = t(G[b0,b1]) %*% Gi %*% H[h0,h0]
+    H[h0,h1] = t(H[h1,h0])
+    n0 = n1
+  }
+  return(H)
+}
+
+#-----------------------
+doHinv = function(Glist) {
+#-----------------------
+  # return H inverse using algorithm in Legarra et al.
+  # input is list of G matrices in increasing marker density
+  nb = length(Glist)
+  n  = ncol(Glist[[1]]) # total nind
+  n1 = ncol(Glist[[2]])  # nind of lowest density array
+  b0 = (n-n1+1):n  # inds genotyped 
+  
+  A = Glist[[1]] # NRM
+  
+  # Hinv is initialized to NRM inverse (brute force simply for demonstration purposes)
+  Hinv = chol2inv(chol(A))
+  
+  # Only H of matrices except last one is needed
+  H = doHgss(Glist[-1])
+  H = chol2inv(chol(H)) - chol2inv(chol(A[b0,b0]))
+  Hinv[b0,b0] = Hinv[b0,b0] + H
+  return(Hinv)
+}
+```
+
+## **Tutorial**
+
+### **Define parameters**
+```{r step00, exercise=TRUE}
+# Parameters
+h2 = 0.25       # heritability
+nFounder = 100  # n founder individuals
+nOff = 2        # n offspring / cross
+nChr = 10       # n chromosomes
+nQTL = 5        # nQTL / chr
+nSNP = 1000     # num SNP / chr
+nGen = 3        # no. of generations
+```
+
+### **Run simulation**
+```{r step0, exercise=TRUE, exercise.setup="step00"}
+
+# Simulation wrapper
+sim <- runAlphasim(h2, nFounder=nFounder, nOffspring=nOff, nChr = nChr, nQTL=nQTL, nSNP = nSNP, nGen = nGen)
+
+# saves sim output so can be read
+saveRDS(sim, here("alphasim.rds"))
+```
+
+**By saving and re reading, same simulation data is used across code chunks**
+
+```{r step1, exercise=TRUE, exercise.setup="step00"}
+sim <- readRDS(here('alphasim.rds'))
+
+# Returns 
+g <- sim$g     # sequence data (whole population)
+q <- sim$q
+y <- sim$y     # phenotype
+tbv <- sim$tbv # true breeding value
+ped <- sim$ped # pedigree
+
+nmkr <- ncol(g)
+nind <- nrow(g)
+
+print(paste0('N inds: ', nind, '; N mkrs: ', nmkr))
+print(tail(y))
+```
+
+**Basic plots**
+```{r step2, exercise=TRUE, exercise.setup="step1"}
+hist(maf(g), main = 'Allele frequency distribution')
+
+heatmap(cor(g[,1:100]), Rowv=NA, Colv=NA, main = 'LD map, first 100 markers')
+
+plot(tbv, y, xlab='TBV', ylab='y')
+
+```
+
+### **Genotyping and individual blocks defined** 
+
+They are specified as lists of markers and of markers. In this case, the first block contains  all individuals ungenotyped; the second block contains individuals from second generation genotyped for 20% markers, and a third block from last generation with all markers. Any number of blocks can be added.
+
+**WARNING:** ids must be in same order in each block and $G$
+
+```{r step3, exercise=TRUE, exercise.setup="step2"}
+#--> blocks defined
+b_ids = list(1:nind,                          # all individuals are in first block
+             (nFounder*nOff+nFounder+1):nind, # array genotyping starts at third generation inds
+             (nind-nFounder*nOff+1):nind)     # last generation is sequenced
+
+#--> chip markers: contains marker ids included in each block array, 0 for pedigree
+mk_ids = list(0,  # - first block has no markers, only pedigree
+              sample(1:nmkr, nmkr%/%10), # - second block ids genotyped with random 10% markers
+              1:nmkr) # - third block genotyped with all markers (sequence)
+
+
+# no. of blocks
+nblock = length(b_ids)
+
+```
+
+**Relationship matrices**
+
+```{r step4, exercise=TRUE, exercise.setup="step3"}
+#--> obtain relationship matrices
+Glist = list()
+for (b in 1:nblock) {
+  if (length(mk_ids[[b]])==1) {
+    # numerator relationship matrix
+    Glist[[b]] = doA(ped)
+  } else {
+    # marker GRM for given inds and mkrs
+    Glist[[b]] = GRM(g[b_ids[[b]], mk_ids[[b]]])
+    diag(Glist[[b]]) = diag(Glist[[b]]) + 0.5 # to stabilize
+  }
+}
+```
+
+#### **GSS function**
+**This is the function that obtains $H_{GSS}$**
+
+```
+#------------------------
+doHgss <- function(Glist) {
+#------------------------
+  # Input is a list of molecular relationship matrices in increasing marker density
+  nb = length(Glist)     # n G's
+  n  = ncol(Glist[[1]])  # ninds
+  H  = matrix(0, nrow=n, ncol=n)
+  
+  n0 = ncol(Glist[[nb]])
+  H[(n-n0+1):n, (n-n0+1):n] = Glist[[nb]]   # inds for highest density genotyped
+  for (i in (nb-1):1) {
+    G  = Glist[[i]]   # G of current block
+    n1 = ncol(G)      # coordinates wrt to current G
+    b1 = 1:(n1-n0)    # individuals with current array ungenotyped with former denser array
+    b0 = (n1-n0+1):n1 # previous individuals genotyped with denser array
+    h1 = b1 + (n-n1)  # coordinates in global H: 1...nind
+    h0 = b0 + (n-n1)
+    Gi = chol2inv(chol(G[b0,b0]))
+    H[h1,h1] = G[b1,b1] - 
+               t(G[b0,b1]) %*% Gi %*% G[b0,b1] + 
+               t(G[b0,b1]) %*% Gi %*% H[h0,h0] %*% Gi %*% G[b0,b1]
+    H[h1,h0] = t(G[b0,b1]) %*% Gi %*% H[h0,h0]
+    H[h0,h1] = t(H[h1,h0])
+    n0 = n1
+  }
+  return(H)
+}
+```
+
+```{r step5, exercise=TRUE, exercise.setup="step4"}
+# Computes GSS H using defined Glist
+H    <- doHgss(Glist)
+
+# and its inverse
+Hinv <- doHinv(Glist)
+
+# Proof H * Hinv = I
+I = H %*% Hinv
+print(head(diag(I)))
+print(round(I[1:10,1:10],10))
+
+```
+
+### **Individuals to be predicted are defined**
+
+```{r step6, exercise=TRUE, exercise.setup="step5"}
+# ids to be predicted are those with highest marker density
+tst <- b_ids[[nblock]] 
+
+```
+
+### **Prediction with pedigree only**
+```{r step7, exercise=TRUE, exercise.setup="step6"}
+A = doA(ped)
+blup_a = BLUP(A, y, tst, h2)
+yHat = blup_a$uhat[tst]
+c = cor(yHat, y[tst])
+plot(y[tst], yHat, col='maroon3', main=paste0('Pedigree only, cor = ',round(c,3)))
+
+```
+
+### **Prediction with GSS**
+```{r step8, exercise=TRUE, exercise.setup="step7"}
+Hgss <- doHgss(Glist)
+blup_gss <- BLUP(Hgss, y, tst, h2)
+yHat <- blup_gss$uhat[tst]
+c = cor(y[tst], yHat)
+plot(y[tst], yHat, col='steelblue', main=paste0('GSS, cor = ',round(c,3)))
+```
+
+### **Prediction with SS**
+Base population ungenotyped, rest genotyped with lower density array. Note the same function can be used, simply removing last block.
+
+```{r step9, exercise=TRUE, exercise.setup="step8"}
+Hgss <- doHgss(Glist[-nblock]) # last block removed
+blup_ss <- BLUP(Hgss, y, tst, h2)
+yHat <- blup_ss$uhat[tst]
+c = cor(y[tst], yHat)
+plot(y[tst], yHat, col='steelblue1', main=paste0('SS, cor = ',round(c,3)))
+```
+
+### **Prediction with complete sequence**
+```{r step10, exercise=TRUE, exercise.setup="step9"}
+G <- GRM(g)
+blup_s <- BLUP(G, y, tst, h2)
+yHat <- blup_s$uhat[tst]
+c = cor(y[tst], yHat)
+plot(y[tst], yHat, col='darkblue', main=paste0('Sequence, cor = ',round(c,3)))
+```
+
+**Write a code of your own**
+
+```{r step11, exercise=TRUE, exercise.setup="step10"}
+
+
+```
+
