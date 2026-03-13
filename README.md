@@ -12,8 +12,8 @@ The method developed generalizes extant single step theory to any number of hier
 
 ## Code provided
 - [aux.R](https://github.com/miguelperezenciso/GSS/blob/main/aux.R) contains several auxiliary functions
-- [gsstep.Rmd]((https://github.com/miguelperezenciso/GSS/blob/main/gsstep.Rmd)) is an interactive script that illustrates the method
-- [GSS.R]((https://github.com/miguelperezenciso/GSS/blob/main/GSS.R)) a larger example used in the manuscript with some improved graphs
+- [gsstep.Rmd](https://github.com/miguelperezenciso/GSS/blob/main/gsstep.Rmd) is an interactive script that illustrates the method
+- [GSS.R](https://github.com/miguelperezenciso/GSS/blob/main/GSS.R) a larger example used in the manuscript with some improved graphs
 
 
 ## Theory
