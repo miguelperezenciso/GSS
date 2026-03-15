@@ -12,7 +12,7 @@ The method developed generalizes extant single step theory to any number of hier
 
 ## Code provided
 - [aux.R](https://github.com/miguelperezenciso/GSS/blob/main/aux.R) contains several auxiliary functions
-- [gsstep.Rmd](https://github.com/miguelperezenciso/GSS/blob/main/gsstep.Rmd) is an interactive script that illustrates the method
+- [gsstep.Rmd](https://github.com/miguelperezenciso/GSS/blob/main/gsstep.Rmd) is an interactive script that illustrates the method. Warning: this short tutorial is not for real testing, as it some tricks are used to have available variables across code boxes and datasets may not be identical. Use [GSS.R](https://github.com/miguelperezenciso/GSS/blob/main/GSS.R) for more serious runs.   
 - [GSS.R](https://github.com/miguelperezenciso/GSS/blob/main/GSS.R) a larger example used in the manuscript with some improved graphs
 
 
