@@ -1,10 +1,10 @@
-# A generalized single step for any number of hierarchical genomic matrices
+# A generalized single step method for integrating any number of hierarchical genomic matrices
 
 **Miguel Pérez-Enciso**
 
 mperezenciso@gmail.com
 
-The Single Step algorithm allows combining information from genotyped and un-genotyped individuals, provided they are connected by a pedigree. Current single step theory is limited to a single genotyping array. 
+The Single Step genomic prediction algorithm allows combining information from genotyped and un-genotyped individuals, provided they are connected by a pedigree. Current single step theory is limited to a single genotyping array. 
 
 We present a generalized single step (GSS) method that can accommodate any number of hierarchical molecular datasets (e.g., sequence, high and low density arrays) and pedigree, avoiding imputation. We proof that a similar efficient inversion algorithm exists. The method is recursive, starting with the highest marker density scenario. We illustrate the method with simulation and show that GSS can increase predictive accuracy compared to standard single step. R code is provided so that custom scenarios can be easily compared, either with simulated or real data.
 
