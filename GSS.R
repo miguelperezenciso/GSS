@@ -1,8 +1,18 @@
-# Load AlphaSimR package
+# install covcomb package
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/CovCombR/CovCombR_1.0.tar.gz"
+install.packages('CholWishart')
+install.packages(packageurl, repos=NULL, type="source")
 
+# Load AlphaSimR package
 library(AlphaSimR)
 library(MASS)
 library(ggplot2)
+library(reshape2)
+library(gridExtra)
+library(cowplot)
+
+library(CovCombR)
+
 
 setwd('/Users/miguel/Dropbox/0_Research/2026_GSStep/src')
 
@@ -146,14 +156,6 @@ nQTL = 5     # nQTL / chr
 nSNP = 1000  # num SNP / chr
 nGen = 3     # no. of generations
 
-h2 = 0.5     # heritability
-nFounder = 100  # n founder individuals
-nOff = 1     # n offspring / cross
-nChr = 20    # n chromosomes
-nQTL = 5     # nQTL / chr
-nSNP = 1000  # num SNP / chr
-nGen = 3     # no. of generations
-
 # Simulation program 
 out <- runAlphasim(h2, nFounder=nFounder, nOffspring=nOff, nChr = nChr, nQTL=nQTL, nSNP = nSNP, nGen = nGen)
 g <- out$g  # sequence data (whole population)
@@ -169,7 +171,6 @@ hist(colMeans(g/2), main = 'Unfolded site frequency spectrum')
 heatmap(cor(g[,1:100]), Rowv=NA, Colv=NA, main = 'LD map, first 100 markers')
 plot(out$tbv, out$y, xlab='TBV', ylab='y')
 
-library(reshape2)
 # Plot 1: Unfolded site frequency spectrum
 df1 <- data.frame(allele_freq = colMeans(g/2))
 
@@ -222,6 +223,8 @@ for (b in 1:nblock) {
     Glist[[b]] = GRM(g[b_ids[[b]], mk_ids[[b]]])
     diag(Glist[[b]]) = diag(Glist[[b]]) + 0.5 # to stabilize
   }
+  # assign ids to row and colnames to use CovCombR
+  dimnames(Glist[[b]]) <- list(b_ids[[b]], b_ids[[b]])
 }
 
 H    <- doHgss(Glist)
@@ -244,24 +247,26 @@ print(cor(y[tst], yHat))
 H = doHgss(Glist[-nblock]) # computes H without sequence (standard SS)
 blup_h = BLUP(H, y, tst, h2)
 yHat <- blup_h$uhat[tst]
+print(cor(y[tst], yHat))
 
 # only pedigree
 A = doA(ped)
 blup_a = BLUP(A, y, tst, h2)
 yHat = blup_a$uhat[tst]
+print(cor(y[tst], yHat))
 
 ## all sequenced
 G=GRM(g)
 blup_s = BLUP(G, y, tst, h2)
 yHat <- blup_s$uhat[tst]
+print(cor(y[tst], yHat))
 
+plot(G, C, main = round(cor(c(G),c(C)),3) )
+plot(G, Hgss, main = round(cor(c(G),c(Hgss)),3) )
+plot(C, Hgss, main = round(cor(c(C),c(Hgss)),3) )
 
 ## plot A elements
 ids = sample(1:(nind*(nind-1)/2), 5000)
-
-library(ggplot2)
-library(cowplot)
-library(gridExtra)
 
 # Relationship matrices
 # Calculate correlations
@@ -346,5 +351,120 @@ p4 <- ggplot(data.frame(x = tbv[tst], y = blup_h$uhat[tst]),
   theme(plot.title = element_text(size = 11, face = "bold"))
 grid.arrange(p1, p2, p3, p4, ncol = 2)
 
+############################################################
+#          Partially - overlapping matrices
+# 50% of second block markers are not in highest density chip
+###########################################################
 
+# for reproducibility
+set.seed(421)
+
+h2 = 0.5        # heritability
+nFounder = 100  # n founder individuals
+nOff = 1     # n offspring / cross
+nChr = 20    # n chromosomes
+nQTL = 5     # nQTL / chr
+nSNP = 1000  # num SNP / chr
+nGen = 3     # no. of generations
+
+out <- runAlphasim(h2, nFounder=nFounder, nOffspring=nOff, nChr = nChr, nQTL=nQTL, nSNP = nSNP, nGen = nGen)
+g <- out$g  # sequence data (whole population)
+y <- out$y # phenotype
+tbv <- out$tbv # true breeding value
+ped <- out$ped # pedigree
+
+nmkr <- ncol(g)
+nind <- nrow(g)
+
+# 
+b_ids = list(1:nind, 
+             (nFounder*nOff+nFounder+1):nind, # array genotyping starts at third generation inds
+             (nind-nFounder*nOff+1):nind) # last generation is sequenced
+nblock = length(b_ids)
+
+tst <- b_ids[[nblock]] # ids to be predicted those with highest density
+
+s <- sample(1:nmkr, 1000)
+mk_ids = list(0, s, (1:nmkr)[-s[1:500]])
+
+#--> obtain relationship matrices
+Glist = list()
+for (b in 1:nblock) {
+  # numerator relationship matrix
+  if (length(mk_ids[[b]])==1) {
+    Glist[[b]] = doA(ped) # marker GRM for given inds and mkrs
+  } else {
+    Glist[[b]] = GRM(g[b_ids[[b]], mk_ids[[b]]])
+    diag(Glist[[b]]) = diag(Glist[[b]]) + 0.5 # to stabilize
+  }
+  # assign ids to row and colnames to use CovCombR
+  dimnames(Glist[[b]]) <- list(b_ids[[b]], b_ids[[b]])
+}
+
+# Predictive ability in individuals with non-hierarchic chips
+start_time <- Sys.time()
+Hgss   <- doHgss(Glist)
+blup_gss <- BLUP(Hgss, y, tst, h2)
+yHat <- blup_gss$uhat[tst]
+print(cor(tbv[tst], yHat))
+print(Sys.time() - start_time)
+
+## all sequenced
+G=GRM(g)
+blup_s = BLUP(G, y, tst, h2)
+yHat <- blup_s$uhat[tst]
+print(cor(tbv[tst], yHat))
+
+# CovCombR
+start_time <- Sys.time()
+C <- CovComb(Klist=Glist)
+blup_c = BLUP(C, y, tst, h2)
+yHat <- blup_c$uhat[tst]
+print(cor(tbv[tst], yHat))
+print(Sys.time() - start_time)
+
+
+# Relationship matrices
+# Calculate correlations
+c1 <- cor(G[lower.tri(G)], Hgss[lower.tri(G)])
+c2 <- cor(G[lower.tri(G)], C[lower.tri(G)])
+
+# Create individual plots with labels in the title
+p1 <- ggplot(data.frame(x = G[lower.tri(G)], y = Hgss[lower.tri(Hgss)]), 
+             aes(x = x, y = y)) +
+  geom_point(alpha = 0.5, color = "firebrick", size = 1.5) +
+  labs(x = "S elements", y = "Hgss elements", 
+       title = paste0("Seq vs Hgss, cor = ", round(c1, 3))) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 11, face = "bold", hjust = 0))
+
+p2 <- ggplot(data.frame(x = G[lower.tri(G)], y = C[lower.tri(G)]), 
+             aes(x = x, y = y)) +
+  geom_point(alpha = 0.5, color = "firebrick", size = 1.5) +
+  labs(x = "S elements", y = "C elements", 
+       title = paste0("Seq vs C, cor = ", round(c2, 3))) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 11, face = "bold", hjust = 0))
+
+
+c3 <- cor(tbv[tst], blup_gss$uhat[tst])
+c4 <- cor(tbv[tst], blup_c$uhat[tst])
+
+p3 <- ggplot(data.frame(x = tbv[tst], y = blup_gss$uhat[tst]), 
+             aes(x = x, y = y)) +
+  geom_point(alpha = 0.5, color = "steelblue", size = 1.5) +
+  labs(x = "TBV", y = "GSS", 
+       title = paste0("Hgss: cor = ", round(c3, 3))) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 11, face = "bold"))
+
+p4 <- ggplot(data.frame(x = tbv[tst], y = blup_c$uhat[tst]), 
+             aes(x = x, y = y)) +
+  geom_point(alpha = 0.5, color = "steelblue", size = 1.5) +
+  labs(x = "TBV", y = "CovCombR", 
+       title = paste0("CovCombR: cor = ", round(c4, 3))) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 11, face = "bold"))
+
+grid.arrange(p1, p2, p3, p4, ncol=2)
 
