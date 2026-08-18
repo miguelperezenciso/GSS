@@ -21,7 +21,7 @@ The method developed generalizes extant single step theory to any number of hier
 ## Theory
 In the following, we assume the usual linear mixed model:
 
-y = Xb + Wu + e,
+```y = Xb + Wu + e```,
 
 where y contains the phenotypes, b is the fixed effects vector, random genetic values are in u, residuals in e, and X and W are incidence matrices. SS theory considers a subset in u, u1 comprising individuals without molecular data and subset u2 which have been genotyped. Both u1 and u2 are related through a common pedigree (P) that results in numerator relationship matrix A. When marker information on m SNPs is available, a genomic relationship matrix (GRM) G can be computed as
 
