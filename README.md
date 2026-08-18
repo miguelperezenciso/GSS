@@ -1,8 +1,10 @@
-# A generalized single step method for integrating any number of hierarchical genomic matrices
+# A generalized single step theory for any number of hierarchical genomic matrices
 
 **Miguel Pérez-Enciso**
 
 mperezenciso@gmail.com
+
+[Genetics Selection Evolution](https://link.springer.com/journal/12711) (in press)
 
 The Single Step genomic prediction algorithm allows combining information from genotyped and un-genotyped individuals, provided they are connected by a pedigree. Current single step theory is limited to a single genotyping array. 
 
